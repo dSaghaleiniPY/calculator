@@ -8,23 +8,24 @@ SCREEN_WIDTH = 620
 SCREEN_HEIGHT = 800
 BUTTON_WIDTH = 100
 BUTTON_HEIGHT = 108
+SWITCH_DIMENSIONS = 30
+# switch location = (55, 20)
 
 X_NUMKEYS = [180, 50, 180, 310, 440, 50, 180, 310, 440, 50]
 X_AC = 310
 X_DIVIDE = 440
-X_MULTIPLY = 50
+X_MULTIPLY = 310
 X_SUBTRACT = 50
 X_ADD = 180
+X_EQUAL = 440
 
 Y_NUMKEYS = [504, 208, 208, 208, 208, 356, 356, 356, 356, 504]
 Y_AC = 504
-Y_MULTIPLY = 504
+Y_MULTIPLY = 652
 Y_DIVIDE = 504
 Y_SUBTRACT = 652
 Y_ADD = 652
-
-current_number = ""
-operation = None
+Y_EQUAL = 652
 
 # images
 IMAGE_NUMKEYS = []
@@ -36,13 +37,20 @@ IMAGE_DIVIDE = pygame.image.load("divide.png")
 IMAGE_MULTIPLY = pygame.image.load("multiplication.png")
 IMAGE_ADD = pygame.image.load("add.png")
 IMAGE_SUBTRACT = pygame.image.load("subtract.png")
+IMAGE_EQUAL = pygame.image.load("equal_key.png")
 
 # pygame assets (fonts)
 NUMBER_FONT = pygame.font.SysFont("Arial", 35)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+# display
+current_number = ""
+operation = None
+current_number2 = ""
+answer = ""
 
+mouse_pressed_last_frame = False
 
 clock = pygame.time.Clock()
 # WHILE RUNNING <----------------------------------------------------------
@@ -54,7 +62,6 @@ while True:
             raise SystemExit
 
     screen.fill("#1f1e21") 
-
     # show images
     for i in range(10):
         screen.blit(IMAGE_NUMKEYS[i], (X_NUMKEYS[i], Y_NUMKEYS[i]))
@@ -64,65 +71,99 @@ while True:
     screen.blit(IMAGE_AC, (X_AC, Y_AC))
     screen.blit(IMAGE_SUBTRACT, (X_SUBTRACT, Y_SUBTRACT))
     screen.blit(IMAGE_ADD, (X_ADD, Y_ADD))
+    screen.blit(IMAGE_EQUAL, (X_EQUAL, Y_EQUAL))
 
-    # display the text
     number_image = NUMBER_FONT.render(current_number, True, "white")
-    screen.blit(number_image, (50, 40))
+    number2_image = NUMBER_FONT.render(current_number2, True, "white")
+    operation_image = NUMBER_FONT.render(operation, True, "white")
+    answer_image = NUMBER_FONT.render(str(answer), True, "white")
+    
+    screen.blit(number_image, (70, 70))
+    screen.blit(operation_image, (350, 70))
+    screen.blit(number2_image, (400, 70))
+    screen.blit(answer_image, (350, 100))
+
     # making the buttons work
     mouse_clicked = pygame.mouse.get_pressed()[0]
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
     if mouse_clicked:
-        # number keys
-        for i in range(10):
-            if (mouse_x > X_NUMKEYS[i] and
-                mouse_x < X_NUMKEYS[i] + BUTTON_WIDTH and
-                mouse_y > Y_NUMKEYS[i] and
-                mouse_y < Y_NUMKEYS[i] + BUTTON_HEIGHT
-            ):
-                current_number += str(i)
-     
-        # AC
-        if (mouse_x > X_AC and
+        if not mouse_pressed_last_frame:
+            # typing
+            for i in range(10):
+                if (mouse_x > X_NUMKEYS[i] and
+                    mouse_x < X_NUMKEYS[i] + BUTTON_WIDTH and
+                    mouse_y > Y_NUMKEYS[i] and
+                    mouse_y < Y_NUMKEYS[i] + BUTTON_HEIGHT
+                ):
+                        if operation == None:
+                            current_number += str(i)
+                        else:
+                            current_number2 += str(i)
+            # AC
+            if (mouse_x > X_AC and
             mouse_x < X_AC + BUTTON_WIDTH and 
             mouse_y < Y_AC + BUTTON_HEIGHT and 
-            mouse_y > Y_AC): 
-            current_number = ""
-            operation = None
+            mouse_y > Y_AC
+            ): 
+                current_number = ""
+                current_number2 = ""
+                operation = None
 
-        # Plus
-        if (mouse_x > X_ADD and
-            mouse_x < X_ADD + BUTTON_WIDTH and
-            mouse_y < Y_ADD + BUTTON_HEIGHT and
-            mouse_y > Y_ADD
+            # Plus
+            if (mouse_x > X_ADD and
+                mouse_x < X_ADD + BUTTON_WIDTH and
+                mouse_y < Y_ADD + BUTTON_HEIGHT and
+                mouse_y > Y_ADD
             ):
-            operation = " + "
+                operation = " + "
 
-        # Multiply
-        if (mouse_x > X_MULTIPLY and
-            mouse_x < X_MULTIPLY + BUTTON_WIDTH and
-            mouse_y < Y_MULTIPLY + BUTTON_HEIGHT and
-            mouse_y > Y_MULTIPLY
+            # Multiply
+            if (mouse_x > X_MULTIPLY and
+                mouse_x < X_MULTIPLY + BUTTON_WIDTH and
+                mouse_y < Y_MULTIPLY + BUTTON_HEIGHT and
+                mouse_y > Y_MULTIPLY
+                ):
+                operation = " * "
+
+            # Subtract
+            if (mouse_x > X_SUBTRACT and
+                mouse_x < X_SUBTRACT + BUTTON_WIDTH and
+                mouse_y < Y_SUBTRACT + BUTTON_HEIGHT and
+                mouse_y > Y_SUBTRACT
+                ):
+                operation = " - "
+
+            # Divide
+            if (mouse_x > X_DIVIDE and
+                mouse_x < X_DIVIDE + BUTTON_WIDTH and
+                mouse_y < Y_DIVIDE + BUTTON_HEIGHT and
+                mouse_y > Y_DIVIDE
+                ):
+                operation = " / "
+
+            # Equal
+            if (mouse_x > X_EQUAL and
+                mouse_x < X_EQUAL + BUTTON_WIDTH and
+                mouse_y < Y_EQUAL + BUTTON_HEIGHT and
+                mouse_y > Y_EQUAL
             ):
-            operation = " * "
+                if operation == " * ":
+                    answer = int(current_number) * int(current_number2)
+                if operation == " - ":
+                    answer = int(current_number) - int(current_number2)
+                if operation == " / ":
+                    answer = int(current_number) / int(current_number2)
+                if operation == " + ":
+                    answer = int(current_number) + int(current_number2)
 
-        # Subtract
-        if (mouse_x > X_SUBTRACT and
-            mouse_x < X_SUBTRACT + BUTTON_WIDTH and
-            mouse_y < Y_SUBTRACT + BUTTON_HEIGHT and
-            mouse_y > Y_SUBTRACT
-            ):
-            operation = " - "
+                current_number = ""
+                current_number2 = ""
+                operation = None
 
-        # Divide
-        if (mouse_x > X_DIVIDE and
-            mouse_x < X_DIVIDE + BUTTON_WIDTH and
-            mouse_y < Y_DIVIDE + BUTTON_HEIGHT and
-            mouse_y > Y_DIVIDE
-            ):
-            operation = " / "
-
-        print(current_number)
+        mouse_pressed_last_frame = True
+    else:
+        mouse_pressed_last_frame = False
 
     pygame.display.flip() 
-    clock.tick(6)         
+    clock.tick(60)
